@@ -14,6 +14,7 @@ A repository for managing Blender files (.blend) with security scanning to detec
 - Python 3.10+
 - Blender (any version, default: blender-5)
 - bandit (optional, for enhanced scanning)
+- Git LFS (for .blend files)
 
 ## Installation
 
