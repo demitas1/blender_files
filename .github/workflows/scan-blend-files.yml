@@ -11,7 +11,6 @@ on:
 
 env:
   BLENDER_VERSION: "4.2.0"
-  BLENDER_BASE_DIR: "${{ github.workspace }}/blender"
 
 jobs:
   scan:
@@ -32,23 +31,21 @@ jobs:
         id: cache-blender
         uses: actions/cache@v4
         with:
-          path: ${{ env.BLENDER_BASE_DIR }}
-          key: blender-${{ env.BLENDER_VERSION }}-linux
+          path: ${{ github.workspace }}/blender-install
+          key: blender-${{ env.BLENDER_VERSION }}-linux-v2
 
       - name: Download and Install Blender
         if: steps.cache-blender.outputs.cache-hit != 'true'
         run: |
-          mkdir -p "$BLENDER_BASE_DIR"
+          mkdir -p "${{ github.workspace }}/blender-install/blender-ci"
           BLENDER_URL="https://download.blender.org/release/Blender${BLENDER_VERSION%.*}/blender-${BLENDER_VERSION}-linux-x64.tar.xz"
           echo "Downloading Blender from: $BLENDER_URL"
-          curl -L "$BLENDER_URL" | tar -xJ -C "$BLENDER_BASE_DIR" --strip-components=1
-          # Create symlink for version name
-          ln -sf "$BLENDER_BASE_DIR" "$BLENDER_BASE_DIR/../blender-ci"
+          curl -L "$BLENDER_URL" | tar -xJ -C "${{ github.workspace }}/blender-install/blender-ci" --strip-components=1
 
-      - name: Setup Blender symlink
+      - name: Verify Blender installation
         run: |
-          mkdir -p "$BLENDER_BASE_DIR"
-          ln -sf "$BLENDER_BASE_DIR" "$BLENDER_BASE_DIR/../blender-ci"
+          ls -la "${{ github.workspace }}/blender-install/blender-ci/"
+          "${{ github.workspace }}/blender-install/blender-ci/blender" --version
 
       - name: Install dependencies
         run: |
@@ -65,7 +62,7 @@ jobs:
       - name: Scan changed blend files
         if: steps.changed-files.outputs.any_changed == 'true'
         env:
-          BLENDER_BASE_DIR: ${{ github.workspace }}/blender/..
+          BLENDER_BASE_DIR: ${{ github.workspace }}/blender-install
         run: |
           echo "Scanning changed .blend files..."
           EXIT_CODE=0
@@ -84,7 +81,7 @@ jobs:
       - name: Scan all blend files (manual trigger)
         if: github.event_name == 'workflow_dispatch'
         env:
-          BLENDER_BASE_DIR: ${{ github.workspace }}/blender/..
+          BLENDER_BASE_DIR: ${{ github.workspace }}/blender-install
         run: |
           echo "Scanning all .blend files..."
           EXIT_CODE=0

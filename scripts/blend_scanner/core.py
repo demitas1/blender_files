@@ -48,10 +48,24 @@ class BlendScanner:
         base_dir = os.environ.get(
             "BLENDER_BASE_DIR", os.path.expanduser("~/Application/blender")
         )
-        blender_path = Path(base_dir) / version
-        if not blender_path.exists():
-            raise FileNotFoundError(f"Blender not found: {blender_path}")
-        return blender_path
+        version_dir = Path(base_dir) / version
+        if not version_dir.exists():
+            raise FileNotFoundError(f"Blender not found: {version_dir}")
+
+        # Find the blender executable
+        blender_exe = version_dir / "blender"
+        if blender_exe.exists():
+            return blender_exe
+
+        # Check if version_dir is a symlink to a directory containing blender
+        if version_dir.is_symlink():
+            target = version_dir.resolve()
+            blender_exe = target / "blender"
+            if blender_exe.exists():
+                return blender_exe
+
+        # Fallback: return the directory (legacy behavior)
+        return version_dir
 
     @staticmethod
     def list_blender_versions() -> list[str]:
