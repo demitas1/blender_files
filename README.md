@@ -2,6 +2,11 @@
 
 A repository for managing Blender files (.blend) with security scanning to detect potentially malicious embedded scripts.
 
+## Documentation
+
+- [Manual (Japanese)](docs/manual.md) - Usage (Japanese)
+- [Design Document (Japanese)](docs/design.md) - Design document (Japanese)
+
 ## Features
 
 - Extract and analyze Python code embedded within Blender files
@@ -34,23 +39,26 @@ pip install -r requirements.txt
 ### Basic Scan
 
 ```bash
-python scripts/extract_and_scan.py <blend_file>
+python scripts/scan_blend.py <blend_file>
 ```
 
 ### Options
 
 ```bash
 # Show extracted script contents
-python scripts/extract_and_scan.py <blend_file> --verbose
+python scripts/scan_blend.py <blend_file> --verbose
 
 # Specify Blender version
-python scripts/extract_and_scan.py <blend_file> -b blender-4-LTS
+python scripts/scan_blend.py <blend_file> -b blender-4-LTS
 
 # Run with user addons enabled
-python scripts/extract_and_scan.py <blend_file> --with-addons
+python scripts/scan_blend.py <blend_file> --with-addons
 
 # List available Blender versions
-python scripts/extract_and_scan.py --list-versions
+python scripts/scan_blend.py --list-versions
+
+# Run specific scanners only
+python scripts/scan_blend.py <blend_file> --scanners malware,privacy
 ```
 
 ### Environment Variables
@@ -98,9 +106,9 @@ Scan complete: Warnings found (review recommended)
 
 ## Pattern Detection
 
-### Error Level (Dangerous)
+### Malware Scanner
 
-These patterns will cause the scan to fail:
+**Error Level (Dangerous)** - These patterns will cause the scan to fail:
 
 - `os.system`, `os.popen`
 - `subprocess`
@@ -110,11 +118,24 @@ These patterns will cause the scan to fail:
 - `shutil.rmtree`
 - `__import__`
 
-### Warning Level
-
-These patterns require manual review:
+**Warning Level** - These patterns require manual review:
 
 - `eval(` - commonly used in Rigify and other legitimate addons
+
+### Privacy Scanner
+
+**Error Level** - Leaked secrets:
+
+- API keys (OpenAI, GitHub, AWS, Slack)
+- Hardcoded passwords
+- Database connection strings
+- Private keys
+
+**Warning Level** - Personal information:
+
+- User home paths (`/home/username/`, `C:\Users\username\`)
+- Email addresses
+- Token/secret variables
 
 ## License
 
