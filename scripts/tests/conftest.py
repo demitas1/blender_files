@@ -122,3 +122,63 @@ def greet(name):
 if __name__ == "__main__":
     print(greet("World"))
 """
+
+
+# =============================================================================
+# Blend File Fixtures
+# =============================================================================
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture
+def fixtures_dir():
+    """Return the fixtures directory path."""
+    return FIXTURES_DIR
+
+
+@pytest.fixture
+def clean_blend():
+    """Path to a clean blend file with no scripts."""
+    return FIXTURES_DIR / "clean.blend"
+
+
+@pytest.fixture
+def with_safe_script_blend():
+    """Path to a blend file with safe scripts."""
+    return FIXTURES_DIR / "with_safe_script.blend"
+
+
+@pytest.fixture
+def with_malware_patterns_blend():
+    """Path to a blend file with malware patterns."""
+    return FIXTURES_DIR / "with_malware_patterns.blend"
+
+
+@pytest.fixture
+def with_privacy_issues_blend():
+    """Path to a blend file with privacy issues."""
+    return FIXTURES_DIR / "with_privacy_issues.blend"
+
+
+@pytest.fixture
+def with_drivers_blend():
+    """Path to a blend file with driver expressions."""
+    return FIXTURES_DIR / "with_drivers.blend"
+
+
+@pytest.fixture
+def with_external_refs_blend():
+    """Path to a blend file with external references."""
+    return FIXTURES_DIR / "with_external_refs.blend"
+
+
+@pytest.fixture
+def blend_scanner_36():
+    """Create a BlendScanner instance using Blender 3.6 LTS."""
+    from blend_scanner.core import BlendScanner
+
+    try:
+        return BlendScanner(blender_version="blender-3-LTS")
+    except FileNotFoundError:
+        pytest.skip("Blender 3.6 LTS not available")
