@@ -296,17 +296,61 @@ def blend_scanner_36():
 
 ## CI での実行
 
-GitHub Actions で統合テストを実行する場合は、Blender のインストールが必要です：
+GitHub Actions でテストを自動実行します（`.github/workflows/pytest.yml`）。
 
-```yaml
-- name: Install Blender
-  run: |
-    # Blender をダウンロード・インストール
+### トリガー条件
 
-- name: Run tests
-  run: |
-    source venv/bin/activate
-    pytest scripts/tests/ -v
+- `scripts/` 配下のファイル変更時
+- `requirements.txt` 変更時
+- 対象ブランチ: master（push / PR）
+
+### ワークフロー構成
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  pytest.yml ワークフロー                                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Job 1: unit-tests                                          │
+│  ├── Python 3.12 セットアップ                               │
+│  ├── 依存関係インストール（bandit, pytest, pytest-cov）     │
+│  ├── ユニットテスト実行（統合テスト除外）                   │
+│  ├── カバレッジレポート生成                                 │
+│  └── アーティファクトアップロード（30日保持）               │
+│      ├── coverage-report/ (HTML)                            │
+│      └── coverage.xml                                       │
+│                                                              │
+│  Job 2: integration-tests（unit-tests 成功後）              │
+│  ├── Blender 4.2.0 ダウンロード＆キャッシュ                 │
+│  └── 統合テスト実行                                         │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-統合テストは Blender が利用できない環境では自動的にスキップされます。
+### カバレッジレポートの取得
+
+1. GitHub Actions のワークフロー実行ページを開く
+2. Artifacts セクションから `coverage-report` をダウンロード
+3. `index.html` をブラウザで開く
+
+### ローカルでのカバレッジ確認
+
+```bash
+# カバレッジ付きでテスト実行
+pytest scripts/tests/ -v \
+  --ignore=scripts/tests/test_integration.py \
+  --cov=scripts/blend_scanner \
+  --cov-report=html
+
+# レポートを開く
+open htmlcov/index.html  # macOS
+xdg-open htmlcov/index.html  # Linux
+```
+
+### 統合テストのスキップ
+
+統合テストは Blender が利用できない環境では自動的にスキップされます。ローカルで統合テストを除外する場合：
+
+```bash
+pytest scripts/tests/ -v --ignore=scripts/tests/test_integration.py
+```
