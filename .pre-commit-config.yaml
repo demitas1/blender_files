@@ -9,6 +9,8 @@ repos:
         entry: python scripts/pre_commit_scan.py
         language: python
         files: \.blend$
+        # Exclude test fixtures (intentionally contain security issues for testing)
+        exclude: ^scripts/tests/fixtures/
         pass_filenames: true
         # Dependencies for the scanner
         additional_dependencies:

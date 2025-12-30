@@ -254,6 +254,9 @@ pip install -r requirements.txt
 # 2. pre-commit フックの有効化
 pre-commit install
 
+# フックが有効か確認
+ls -la .git/hooks/pre-commit
+
 # 3. 動作確認（全ファイルに対して実行）
 pre-commit run --all-files
 ```
