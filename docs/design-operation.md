@@ -72,9 +72,14 @@ git commit
 └─────────────────┘
     │ あり            │ なし
     ▼                 ▼
-フルスキャン       軽量スキャン
-    │                 │
-    ▼                 ▼
+フルスキャン    ┌─────────────────────────┐
+    │          │ SKIP_BLEND_SCAN=1 ?     │
+    │          └─────────────────────────┘
+    │              │ Yes          │ No
+    │              ▼              ▼
+    │          警告して許可   コミット拒否
+    │              │          （Blender必要）
+    ▼              ▼
 ┌─────────────────────────────┐
 │ ERROR 検出？                 │
 └─────────────────────────────┘
@@ -183,8 +188,29 @@ def quick_scan(blend_path):
 | `.pre-commit-config.yaml` | pre-commitフック設定 |
 
 **決定事項:**
-- Blenderなし環境: 警告を出してコミット許可（CIで最終検証）
 - Blenderバージョン: 設定ファイルで優先順位を指定
+
+### フェーズ1.5: Blenderなし環境の安全強化
+
+- [ ] デフォルト動作を「コミット拒否」に変更
+- [ ] `SKIP_BLEND_SCAN=1` 環境変数で強制コミット許可
+- [ ] テスト追加
+- [ ] ドキュメント更新
+
+**設計:**
+- Blenderがない環境では、デフォルトでコミットを拒否（安全側に倒す）
+- 明示的に `SKIP_BLEND_SCAN=1` を指定した場合のみ警告でコミット許可
+- CIで最終的なセキュリティチェックを実施
+
+```bash
+# デフォルト: Blenderがない場合はコミット拒否
+git commit -m "message"
+# → ERROR: Blender not found. Install Blender or use SKIP_BLEND_SCAN=1
+
+# 強制コミット: 環境変数でスキャンをスキップ
+SKIP_BLEND_SCAN=1 git commit -m "message"
+# → WARNING: Blender not found, scan skipped (CI will verify)
+```
 
 ### フェーズ2: 軽量スキャナー
 
@@ -218,8 +244,11 @@ blender:
   base_dir: ~/Application/blender
 
 pre_commit:
-  # Behavior when Blender is not found: warn | error | skip
-  no_blender: warn
+  # Behavior when Blender is not found: error | warn | skip
+  # - error: コミット拒否（デフォルト、SKIP_BLEND_SCAN=1 で上書き可能）
+  # - warn: 警告のみでコミット許可
+  # - skip: 何も出力せずコミット許可
+  no_blender: error
   # Scanners to run
   scanners:
     - malware
@@ -263,13 +292,23 @@ pre-commit run --all-files
 
 ### Blender環境がない場合
 
-Blenderがインストールされていない環境では、pre-commit は警告を表示してコミットを許可します。
-セキュリティチェックは GitHub Actions CI で実行されます。
+Blenderがインストールされていない環境では、デフォルトでコミットが拒否されます。
 
 ```
-[pre-commit] WARNING: Blender not found
-  Scans will run in GitHub Actions CI
-  Install Blender locally for pre-commit scanning
+[pre-commit] ERROR: Blender not found
+  Install Blender or set SKIP_BLEND_SCAN=1 to skip
+  CI will perform security scan on push
+```
+
+スキャンをスキップしてコミットする場合は、環境変数を設定します。
+
+```bash
+SKIP_BLEND_SCAN=1 git commit -m "message"
+```
+
+```
+[pre-commit] WARNING: Blender not found, scan skipped
+  CI will perform security scan on push
 ```
 
 ### 無効化
@@ -288,5 +327,6 @@ git commit --no-verify -m "message"
 
 | 日付 | 内容 |
 |-----|------|
+| 2024-12-30 | フェーズ1.5追加。Blenderなし環境のデフォルト動作を「拒否」に変更、SKIP_BLEND_SCAN環境変数を導入 |
 | 2024-12-30 | フェーズ1完了。pre-commit基盤、設定ファイル、Blender検出を実装 |
 | 2024-12-28 | 初版作成。pre-commit導入の検討開始 |
