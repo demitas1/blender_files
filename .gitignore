@@ -34,3 +34,6 @@ Thumbs.db
 *.blend3
 *.blend4
 *.blend5
+
+# draft article documents
+docs/articles/
