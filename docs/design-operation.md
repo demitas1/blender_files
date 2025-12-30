@@ -163,31 +163,72 @@ def quick_scan(blend_path):
 
 ---
 
-## 実装計画（案）
+## 実装計画
 
-### フェーズ1: 基盤整備
-- [ ] pre-commit フレームワークの導入
-- [ ] Blender 検出ロジックの実装
-- [ ] 既存スキャナーの pre-commit 対応
+### フェーズ1: 基盤整備 ✅ 完了
+
+- [x] pre-commit フレームワークの導入
+- [x] Blender 検出ロジックの実装
+- [x] 既存スキャナーの pre-commit 対応
+- [x] 設定ファイル（`.blend-scanner.yaml`）の実装
+- [x] ユニットテストの追加（40件）
+
+**実装ファイル:**
+| ファイル | 説明 |
+|---------|------|
+| `scripts/blend_scanner/config.py` | 設定ファイル読み込み |
+| `scripts/blend_scanner/blender_detector.py` | Blender検出 |
+| `scripts/pre_commit_scan.py` | pre-commitエントリーポイント |
+| `.blend-scanner.yaml` | プロジェクト設定 |
+| `.pre-commit-config.yaml` | pre-commitフック設定 |
+
+**決定事項:**
+- Blenderなし環境: 警告を出してコミット許可（CIで最終検証）
+- Blenderバージョン: 設定ファイルで優先順位を指定
 
 ### フェーズ2: 軽量スキャナー
+
 - [ ] blendfile ライブラリの調査・検証
 - [ ] 軽量スキャナーのプロトタイプ実装
 - [ ] 検出精度の評価
 
 ### フェーズ3: 統合・展開
-- [ ] pre-commit 設定ファイルの作成
+
+- [x] pre-commit 設定ファイルの作成
 - [ ] チーム向けセットアップ手順の文書化
 - [ ] 段階的な展開とフィードバック収集
 
 ---
 
-## 参考
+## 設定ファイル
 
-### pre-commit フレームワーク
+### .blend-scanner.yaml
+
+プロジェクトルートに配置するスキャナー設定ファイル。
 
 ```yaml
-# .pre-commit-config.yaml（案）
+# Blend Scanner Configuration
+blender:
+  # Blender versions to use (in priority order)
+  versions:
+    - blender-4-LTS
+    - blender-3-LTS
+    - blender-5
+  # Base directory containing Blender installations
+  base_dir: ~/Application/blender
+
+pre_commit:
+  # Behavior when Blender is not found: warn | error | skip
+  no_blender: warn
+  # Scanners to run
+  scanners:
+    - malware
+    - privacy
+```
+
+### .pre-commit-config.yaml
+
+```yaml
 repos:
   - repo: local
     hooks:
@@ -197,19 +238,45 @@ repos:
         language: python
         files: \.blend$
         pass_filenames: true
+        additional_dependencies:
+          - pyyaml>=6.0
+          - bandit>=1.7.0
 ```
 
-### セットアップ手順（案）
+---
+
+## セットアップ手順
 
 ```bash
-# 1. pre-commit のインストール
-pip install pre-commit
+# 1. 依存関係のインストール
+pip install -r requirements.txt
 
-# 2. フックの有効化
+# 2. pre-commit フックの有効化
 pre-commit install
 
-# 3. 動作確認
+# 3. 動作確認（全ファイルに対して実行）
 pre-commit run --all-files
+```
+
+### Blender環境がない場合
+
+Blenderがインストールされていない環境では、pre-commit は警告を表示してコミットを許可します。
+セキュリティチェックは GitHub Actions CI で実行されます。
+
+```
+[pre-commit] WARNING: Blender not found
+  Scans will run in GitHub Actions CI
+  Install Blender locally for pre-commit scanning
+```
+
+### 無効化
+
+```bash
+# pre-commit フックを無効化（.git/hooks/pre-commit を削除）
+pre-commit uninstall
+
+# 一時的にスキップしてコミット（非推奨）
+git commit --no-verify -m "message"
 ```
 
 ---
@@ -218,4 +285,5 @@ pre-commit run --all-files
 
 | 日付 | 内容 |
 |-----|------|
+| 2024-12-30 | フェーズ1完了。pre-commit基盤、設定ファイル、Blender検出を実装 |
 | 2024-12-28 | 初版作成。pre-commit導入の検討開始 |

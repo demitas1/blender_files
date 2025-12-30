@@ -1,0 +1,26 @@
+# Blend Scanner Configuration
+# See docs/design-operation.md for details
+
+blender:
+  # Blender versions to use (in priority order)
+  # The first available version will be used
+  versions:
+    - blender-4-LTS
+    - blender-3-LTS
+    - blender-5
+
+  # Base directory containing Blender installations
+  # Each version should be a subdirectory (e.g., ~/Application/blender/blender-4-LTS)
+  base_dir: ~/Application/blender
+
+pre_commit:
+  # Behavior when Blender is not found:
+  #   warn  - Show warning and allow commit (default)
+  #   error - Block commit
+  #   skip  - Silently skip scan
+  no_blender: warn
+
+  # Scanners to run
+  scanners:
+    - malware
+    - privacy

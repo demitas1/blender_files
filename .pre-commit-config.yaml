@@ -1,0 +1,16 @@
+# Pre-commit configuration
+# See https://pre-commit.com for more information
+
+repos:
+  - repo: local
+    hooks:
+      - id: scan-blend-files
+        name: Scan .blend files for security issues
+        entry: python scripts/pre_commit_scan.py
+        language: python
+        files: \.blend$
+        pass_filenames: true
+        # Dependencies for the scanner
+        additional_dependencies:
+          - pyyaml>=6.0
+          - bandit>=1.7.0
