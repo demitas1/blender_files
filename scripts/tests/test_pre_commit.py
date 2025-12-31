@@ -1,5 +1,6 @@
 """Tests for pre_commit_scan module."""
 
+import os
 import pytest
 import sys
 from pathlib import Path
@@ -159,6 +160,28 @@ class TestMain:
         assert exit_code == 1
         captured = capsys.readouterr()
         assert "ERROR" in captured.out
+        assert "SKIP_BLEND_SCAN=1" in captured.out
+
+    def test_no_blender_error_mode_with_skip_env(self, capsys):
+        """Test behavior when Blender not found with error mode but SKIP_BLEND_SCAN=1."""
+        config = ScannerConfig(
+            blender=BlenderConfig(base_dir="/nonexistent"),
+            pre_commit=PreCommitConfig(no_blender="error"),
+        )
+
+        with patch("pre_commit_scan.ScannerConfig.load", return_value=config):
+            with patch("pre_commit_scan.BlenderDetector") as mock_detector_class:
+                mock_detector = MagicMock()
+                mock_detector.detect.return_value = None
+                mock_detector_class.return_value = mock_detector
+
+                with patch.dict(os.environ, {"SKIP_BLEND_SCAN": "1"}):
+                    exit_code = main(["test.blend"])
+
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "WARNING" in captured.out
+        assert "scan skipped" in captured.out
 
     def test_no_blender_skip_mode(self, capsys):
         """Test behavior when Blender not found with skip mode."""

@@ -13,6 +13,7 @@ Exit codes:
     1 - Errors detected (commit should be blocked)
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -98,15 +99,18 @@ def main(args: list[str] | None = None) -> int:
     if not blender_info:
         # Handle based on configuration
         if config.pre_commit.no_blender == "error":
+            # Check if SKIP_BLEND_SCAN environment variable is set
+            if os.environ.get("SKIP_BLEND_SCAN") == "1":
+                print(Colors.yellow("[pre-commit] WARNING: Blender not found, scan skipped"))
+                return 0
             print(Colors.red("[pre-commit] ERROR: Blender not found"))
-            print("Install Blender or configure .blend-scanner.yaml")
+            print("  Install Blender or set SKIP_BLEND_SCAN=1 to skip")
             return 1
         elif config.pre_commit.no_blender == "skip":
             print("[pre-commit] Blender not found, skipping scan")
             return 0
-        else:  # "warn" (default)
+        else:  # "warn"
             print(Colors.yellow("[pre-commit] WARNING: Blender not found"))
-            print("  Scans will run in GitHub Actions CI")
             print("  Install Blender locally for pre-commit scanning")
             return 0
 

@@ -15,10 +15,10 @@ blender:
 
 pre_commit:
   # Behavior when Blender is not found:
-  #   warn  - Show warning and allow commit (default)
-  #   error - Block commit
+  #   error - Block commit (default, use SKIP_BLEND_SCAN=1 to override)
+  #   warn  - Show warning and allow commit
   #   skip  - Silently skip scan
-  no_blender: warn
+  no_blender: error
 
   # Scanners to run
   scanners:
