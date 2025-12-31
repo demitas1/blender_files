@@ -7,16 +7,32 @@ from pathlib import Path
 import yaml
 
 
+class BlenderConfigError(Exception):
+    """Error raised when Blender configuration is invalid."""
+
+    pass
+
+
 @dataclass
 class BlenderConfig:
     """Blender-related configuration."""
 
     versions: list[str] = field(default_factory=lambda: ["blender-4-LTS", "blender-3-LTS", "blender-5"])
-    base_dir: str = "~/Application/blender"
+    base_dir: str | None = None
 
     @property
     def base_path(self) -> Path:
-        """Get expanded base directory path."""
+        """
+        Get expanded base directory path.
+
+        Raises:
+            BlenderConfigError: If base_dir is not configured
+        """
+        if self.base_dir is None:
+            raise BlenderConfigError(
+                "blender.base_dir is not configured.\n"
+                "Set it in .blend-scanner.yaml or ensure the file exists."
+            )
         return Path(os.path.expanduser(self.base_dir))
 
 
@@ -80,7 +96,7 @@ class ScannerConfig:
 
         blender_config = BlenderConfig(
             versions=blender_data.get("versions", BlenderConfig().versions),
-            base_dir=blender_data.get("base_dir", BlenderConfig().base_dir),
+            base_dir=blender_data.get("base_dir"),
         )
 
         pre_commit_config = PreCommitConfig(

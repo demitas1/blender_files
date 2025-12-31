@@ -9,8 +9,13 @@ blender:
     - blender-3-LTS
     - blender-5
 
-  # Base directory containing Blender installations
-  # Each version should be a subdirectory (e.g., ~/Application/blender/blender-4-LTS)
+  # Base directory containing Blender installations (REQUIRED)
+  # Each version should be a subdirectory containing the blender executable
+  # Example structure:
+  #   ~/Application/blender/
+  #   ├── blender-3-LTS/    # → contains blender executable
+  #   ├── blender-4-LTS/    # → contains blender executable
+  #   └── blender-5/        # → contains blender executable
   base_dir: ~/Application/blender
 
 pre_commit:

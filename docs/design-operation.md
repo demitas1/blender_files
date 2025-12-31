@@ -240,7 +240,8 @@ blender:
     - blender-4-LTS
     - blender-3-LTS
     - blender-5
-  # Base directory containing Blender installations
+  # Base directory containing Blender installations (REQUIRED)
+  # 未設定の場合はエラーになります
   base_dir: ~/Application/blender
 
 pre_commit:
@@ -271,6 +272,59 @@ repos:
           - pyyaml>=6.0
           - bandit>=1.7.0
 ```
+
+---
+
+## Blenderの配置
+
+セキュリティスキャンを実行するには、Blenderの実行ファイルが必要です。
+
+### ディレクトリ構成
+
+`.blend-scanner.yaml` の `blender.base_dir` で指定したディレクトリ配下に、各バージョンのBlenderを配置します。
+
+```
+~/Application/blender/          # base_dir
+├── blender-3-LTS/              # Blender 3.6 LTS
+├── blender-4-LTS/              # Blender 4.2 LTS
+└── blender-5/                  # Blender 5.0
+```
+
+各サブディレクトリは、Blenderの実行ファイルが直接含まれるディレクトリです（公式サイトからダウンロードしたアーカイブを展開したもの）。
+
+### 配置例（Linux）
+
+```bash
+# 1. ベースディレクトリを作成
+mkdir -p ~/Application/blender
+
+# 2. Blenderをダウンロード・展開
+cd ~/Application/blender
+wget https://download.blender.org/release/Blender4.2/blender-4.2.0-linux-x64.tar.xz
+tar xf blender-4.2.0-linux-x64.tar.xz
+mv blender-4.2.0-linux-x64 blender-4-LTS
+
+# 3. 動作確認
+./blender-4-LTS/blender --version
+```
+
+### 設定ファイル（.blend-scanner.yaml）
+
+プロジェクトルートに `.blend-scanner.yaml` を配置し、`base_dir` を設定します。
+
+```yaml
+blender:
+  # 使用するバージョン（優先順位順）
+  versions:
+    - blender-4-LTS
+    - blender-3-LTS
+    - blender-5
+
+  # Blender配置ディレクトリ（必須）
+  base_dir: ~/Application/blender
+```
+
+**重要**: `base_dir` は必須設定です。設定されていない場合、スキャン時にエラーが発生します。
 
 ---
 
@@ -327,6 +381,7 @@ git commit --no-verify -m "message"
 
 | 日付 | 内容 |
 |-----|------|
+| 2024-12-31 | `blender.base_dir` を必須設定に変更。デフォルト値を削除し、未設定時はエラーを出すように変更 |
 | 2024-12-31 | フェーズ1.5完了。SKIP_BLEND_SCAN環境変数を実装、デフォルト動作を「拒否」に変更 |
 | 2024-12-30 | フェーズ1.5追加。Blenderなし環境のデフォルト動作を「拒否」に変更、SKIP_BLEND_SCAN環境変数を導入 |
 | 2024-12-30 | フェーズ1完了。pre-commit基盤、設定ファイル、Blender検出を実装 |

@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
+from blend_scanner.config import BlenderConfigError
 from blend_scanner.core import BlendScanner
 from blend_scanner.models import ExtractedData, Severity
 from blend_scanner.scanners.malware import MalwareScanner
@@ -85,6 +86,15 @@ class TestBlendScannerGetBlenderPath:
                 BlendScanner(blender_version="blender-5")
             assert "Blender not found" in str(exc_info.value)
 
+    def test_raises_when_base_dir_not_set(self):
+        """Test BlenderConfigError when BLENDER_BASE_DIR is not set."""
+        with patch.dict(os.environ, clear=True):
+            # Ensure BLENDER_BASE_DIR is not in environment
+            os.environ.pop("BLENDER_BASE_DIR", None)
+            with pytest.raises(BlenderConfigError) as exc_info:
+                BlendScanner(blender_version="blender-5")
+            assert "BLENDER_BASE_DIR" in str(exc_info.value)
+
 
 class TestBlendScannerListVersions:
     """Tests for list_blender_versions static method."""
@@ -117,6 +127,14 @@ class TestBlendScannerListVersions:
         with patch.dict(os.environ, {"BLENDER_BASE_DIR": "/nonexistent/path"}):
             versions = BlendScanner.list_blender_versions()
             assert versions == []
+
+    def test_list_versions_raises_when_base_dir_not_set(self):
+        """Test BlenderConfigError when BLENDER_BASE_DIR is not set."""
+        with patch.dict(os.environ, clear=True):
+            os.environ.pop("BLENDER_BASE_DIR", None)
+            with pytest.raises(BlenderConfigError) as exc_info:
+                BlendScanner.list_blender_versions()
+            assert "BLENDER_BASE_DIR" in str(exc_info.value)
 
 
 class TestBlendScannerParseOutput:

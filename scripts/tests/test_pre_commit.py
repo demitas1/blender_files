@@ -12,7 +12,7 @@ scripts_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(scripts_dir))
 
 from pre_commit_scan import main, get_scanners, print_file_result
-from blend_scanner.config import ScannerConfig, BlenderConfig, PreCommitConfig
+from blend_scanner.config import ScannerConfig, BlenderConfig, BlenderConfigError, PreCommitConfig
 from blend_scanner.blender_detector import BlenderInfo
 from blend_scanner.models import ScanResult, ExtractedData, Finding, Severity
 
@@ -121,6 +121,20 @@ class TestMain:
         """Test with empty args."""
         exit_code = main([])
         assert exit_code == 0
+
+    def test_blender_config_error(self, capsys):
+        """Test behavior when Blender base_dir is not configured."""
+        config = ScannerConfig(
+            blender=BlenderConfig(base_dir=None),
+        )
+
+        with patch("pre_commit_scan.ScannerConfig.load", return_value=config):
+            exit_code = main(["test.blend"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "configuration error" in captured.out.lower()
+        assert "base_dir" in captured.out
 
     def test_no_blender_warn_mode(self, capsys):
         """Test behavior when Blender not found with warn mode."""

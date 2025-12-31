@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from blend_scanner.blender_detector import BlenderDetector
 from blend_scanner.colors import Colors
-from blend_scanner.config import ScannerConfig
+from blend_scanner.config import BlenderConfigError, ScannerConfig
 from blend_scanner.core import BlendScanner
 from blend_scanner.models import Severity
 from blend_scanner.scanners.malware import MalwareScanner
@@ -94,7 +94,12 @@ def main(args: list[str] | None = None) -> int:
 
     # Detect Blender
     detector = BlenderDetector(config)
-    blender_info = detector.detect()
+    try:
+        blender_info = detector.detect()
+    except BlenderConfigError as e:
+        print(Colors.red("[pre-commit] ERROR: Blender configuration error"))
+        print(f"  {e}")
+        return 1
 
     if not blender_info:
         # Handle based on configuration

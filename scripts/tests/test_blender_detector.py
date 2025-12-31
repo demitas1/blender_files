@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch, MagicMock
 
 from blend_scanner.blender_detector import BlenderDetector, BlenderInfo
-from blend_scanner.config import ScannerConfig, BlenderConfig, PreCommitConfig
+from blend_scanner.config import ScannerConfig, BlenderConfig, BlenderConfigError, PreCommitConfig
 
 
 class TestBlenderInfo:
@@ -184,3 +184,23 @@ class TestBlenderDetector:
             mock_load.return_value = ScannerConfig()
             detector = BlenderDetector()
             mock_load.assert_called_once()
+
+    def test_detect_raises_when_base_dir_not_configured(self):
+        """Test that detect raises error when base_dir is not configured."""
+        config = ScannerConfig(
+            blender=BlenderConfig(base_dir=None)
+        )
+        detector = BlenderDetector(config)
+        with pytest.raises(BlenderConfigError) as exc_info:
+            detector.detect()
+        assert "base_dir is not configured" in str(exc_info.value)
+
+    def test_detect_all_raises_when_base_dir_not_configured(self):
+        """Test that detect_all raises error when base_dir is not configured."""
+        config = ScannerConfig(
+            blender=BlenderConfig(base_dir=None)
+        )
+        detector = BlenderDetector(config)
+        with pytest.raises(BlenderConfigError) as exc_info:
+            detector.detect_all()
+        assert "base_dir is not configured" in str(exc_info.value)

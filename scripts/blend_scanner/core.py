@@ -5,6 +5,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from blend_scanner.config import BlenderConfigError
 from blend_scanner.models import ExtractedData, Finding, ScanResult, Severity
 from blend_scanner.scanners.base import BaseScanner
 from blend_scanner.scanners.malware import MalwareScanner
@@ -45,10 +46,13 @@ class BlendScanner:
 
     def _get_blender_path(self, version: str) -> Path:
         """Get Blender executable path."""
-        base_dir = os.environ.get(
-            "BLENDER_BASE_DIR", os.path.expanduser("~/Application/blender")
-        )
-        blender_path = Path(base_dir) / version
+        base_dir = os.environ.get("BLENDER_BASE_DIR")
+        if not base_dir:
+            raise BlenderConfigError(
+                "BLENDER_BASE_DIR environment variable is not set.\n"
+                "Set it or use blender_path parameter."
+            )
+        blender_path = Path(os.path.expanduser(base_dir)) / version
         if not blender_path.exists():
             raise FileNotFoundError(f"Blender not found: {blender_path}")
         return blender_path
@@ -56,10 +60,12 @@ class BlendScanner:
     @staticmethod
     def list_blender_versions() -> list[str]:
         """List available Blender versions."""
-        base_dir = os.environ.get(
-            "BLENDER_BASE_DIR", os.path.expanduser("~/Application/blender")
-        )
-        base_path = Path(base_dir)
+        base_dir = os.environ.get("BLENDER_BASE_DIR")
+        if not base_dir:
+            raise BlenderConfigError(
+                "BLENDER_BASE_DIR environment variable is not set."
+            )
+        base_path = Path(os.path.expanduser(base_dir))
         if not base_path.exists():
             return []
         return sorted(

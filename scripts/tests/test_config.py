@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 from blend_scanner.config import (
     BlenderConfig,
+    BlenderConfigError,
     PreCommitConfig,
     ScannerConfig,
 )
@@ -18,7 +19,7 @@ class TestBlenderConfig:
         """Test default configuration values."""
         config = BlenderConfig()
         assert config.versions == ["blender-4-LTS", "blender-3-LTS", "blender-5"]
-        assert config.base_dir == "~/Application/blender"
+        assert config.base_dir is None
 
     def test_custom_values(self):
         """Test custom configuration values."""
@@ -34,6 +35,13 @@ class TestBlenderConfig:
         config = BlenderConfig(base_dir="~/Application/blender")
         assert "~" not in str(config.base_path)
         assert config.base_path.is_absolute()
+
+    def test_base_path_raises_when_not_configured(self):
+        """Test that base_path raises error when base_dir is None."""
+        config = BlenderConfig()
+        with pytest.raises(BlenderConfigError) as exc_info:
+            _ = config.base_path
+        assert "base_dir is not configured" in str(exc_info.value)
 
 
 class TestPreCommitConfig:
@@ -120,8 +128,8 @@ blender:
         try:
             config = ScannerConfig.load(config_path)
             assert config.blender.versions == ["blender-5"]
-            # Default values for missing fields
-            assert config.blender.base_dir == "~/Application/blender"
+            # base_dir is None when not specified
+            assert config.blender.base_dir is None
             assert config.pre_commit.no_blender == "warn"
             assert config.pre_commit.scanners == ["malware", "privacy"]
         finally:
