@@ -286,7 +286,7 @@ repos:
 ```
 ~/Application/blender/          # base_dir
 ├── blender-3-LTS/              # Blender 3.6 LTS
-├── blender-4-LTS/              # Blender 4.2 LTS
+├── blender-4-LTS/              # Blender 4.5 LTS
 └── blender-5/                  # Blender 5.0
 ```
 
@@ -300,9 +300,9 @@ mkdir -p ~/Application/blender
 
 # 2. Blenderをダウンロード・展開
 cd ~/Application/blender
-wget https://download.blender.org/release/Blender4.2/blender-4.2.0-linux-x64.tar.xz
-tar xf blender-4.2.0-linux-x64.tar.xz
-mv blender-4.2.0-linux-x64 blender-4-LTS
+wget https://download.blender.org/release/Blender4.5/blender-4.5.0-linux-x64.tar.xz
+tar xf blender-4.5.0-linux-x64.tar.xz
+mv blender-4.5.0-linux-x64 blender-4-LTS
 
 # 3. 動作確認
 ./blender-4-LTS/blender --version

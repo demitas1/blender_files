@@ -6,6 +6,7 @@ A repository for managing Blender files (.blend) with security scanning to detec
 
 - [Manual (Japanese)](docs/manual.md) - Usage (Japanese)
 - [Design Document (Japanese)](docs/design.md) - Design document (Japanese)
+- [GitHub Utilities](scripts/github/README.md) - GitHub Actions usage reporting (Japanese)
 
 ## Features
 
